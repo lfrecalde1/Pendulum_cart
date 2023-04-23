@@ -93,18 +93,25 @@ def main():
     t = np.arange(0, t_final + t_s, t_s)
 
     # Sample time vector
-    delta_t = np.zeros((1, t.shape[0]), dtype=np.double)
-    t_sample = t_s*np.ones((1, t.shape[0]), dtype=np.double)
+    delta_t = np.zeros((1, t.shape[0] - N_prediction), dtype=np.double)
+    t_sample = t_s*np.ones((1, t.shape[0] - N_prediction), dtype=np.double)
 
     # Vector Initial conditions
-    x = np.zeros((4, t.shape[0]+1), dtype = np.double)
+    x = np.zeros((4, t.shape[0]+1-N_prediction), dtype = np.double)
     x[0,0] = 5.0
     x[1,0] = 10*(np.pi/180)
     x[2,0] = 0.0
     x[3,0] = 0.0
     # Initial Control values
-    u_control = np.zeros((1, t.shape[0]), dtype = np.double)
+    u_control = np.zeros((1, t.shape[0]-N_prediction), dtype = np.double)
 
+    # Reference Signal of the system
+    xref = np.zeros((5, t.shape[0]), dtype = np.double)
+    xref[0,:] = 5*np.sin(0.5*t)
+    xref[1,:] = 30*(np.pi/180)*np.cos(0.5*t)
+    xref[2,:] = 0.0
+    xref[3,:] = 0.0 
+    xref[4,:] = 0.0
     #Constraints 
     f_max = 20
     f_min = -20
@@ -126,21 +133,21 @@ def main():
 
     # Initial States Acados
     for stage in range(N_prediction + 1):
-        acados_ocp_solver.set(stage, "x", 1.0 * np.ones(x[:,0].shape))
+        acados_ocp_solver.set(stage, "x", 0.0 * np.ones(x[:,0].shape))
     for stage in range(N_prediction):
         acados_ocp_solver.set(stage, "u", np.zeros((nu,)))
     # Simulation System
 
-    for k in range(0, t.shape[0]):
+    for k in range(0, t.shape[0]- N_prediction):
         acados_ocp_solver.set(0, "lbx", x[:,k])
         acados_ocp_solver.set(0, "ubx", x[:,k])
 
         # update yref
         for j in range(N_prediction):
-            yref = np.array([10, 0, 0.0, 0.0, 0.0])
+            yref = xref[:,k+j]
             acados_ocp_solver.set(j, "yref", yref)
-        yref_N = np.array([10, 0, 0.0, 0.0])
-        acados_ocp_solver.set(N_prediction, "yref", yref_N)
+        yref_N = xref[:,k+N_prediction]
+        acados_ocp_solver.set(N_prediction, "yref", yref_N[0:4])
 
         # Get Computational Time
         tic = time.time()
@@ -155,74 +162,10 @@ def main():
 
         # System Evolution
         x[:, k+1] = f_d(x[:, k], u_control[:,k], t_s, f_system)
+        x[:,k+1] = x[:,k+1] +  np.random.uniform(low=-0.05, high=0.05, size=(4,))
         delta_t[:, k] = toc
 
     # Systems Results
-    ## Figure 1
-    fig1, ax1, ax2 = fancy_plots_2()
-    ## Axis definition necesary to fancy plots
-    ax1.set_xlim((t[0], t[-1]))
-    ax2.set_xlim((t[0], t[-1]))
-    ax1.set_xticklabels([])
-
-    state_1, = ax1.plot(t,x[0,0:t.shape[0]],
-                    color='#00429d', lw=2, ls="-")
-    state_3, = ax1.plot(t,x[2,0:t.shape[0]],
-                    color='#9e4941', lw=2, ls="-.")
-
-    state_2, = ax2.plot(t,x[1,0:t.shape[0]],
-                    color='#ac7518', lw=2, ls="-")
-    state_4, = ax2.plot(t,x[3,0:t.shape[0]],
-                    color='#97a800', lw=2, ls="-.")
-
-    ax1.set_ylabel(r"$[m],[m/s]$", rotation='vertical')
-    ax1.legend([state_1,state_3],
-            [r'$x_1$', r'$x_3$'],
-            loc="best",
-            frameon=True, fancybox=True, shadow=False, ncol=2,
-            borderpad=0.5, labelspacing=0.5, handlelength=3, handletextpad=0.1,
-            borderaxespad=0.3, columnspacing=2)
-    ax1.grid(color='#949494', linestyle='-.', linewidth=0.5)
-
-    ## Figure 2
-    ax2.set_ylabel(r"$[rad],[rad/s]$", rotation='vertical')
-    ax2.set_xlabel(r"$\textrm{Time}[s]$", labelpad=5)
-    ax2.legend([state_2, state_4],
-            [r'$x_2$', r'$x_4$'],
-            loc="best",
-            frameon=True, fancybox=True, shadow=False, ncol=2,
-            borderpad=0.5, labelspacing=0.5, handlelength=3, handletextpad=0.1,
-            borderaxespad=0.3, columnspacing=2)
-    #ax2.axis([t[0], t[-1], x[1,:].min(), x[1,:].max()])
-    ax2.grid(color='#949494', linestyle='-.', linewidth=0.5)
-    fig1.savefig("system_states_verificacion.eps")
-    fig1.savefig("system_states_verificacion.png")
-    fig1
-    plt.show()
-
-    fig3, ax13 = fancy_plots_1()
-    ## Axis definition necesary to fancy plots
-    ax13.set_xlim((t[0], t[-1]))
-
-    time_1, = ax13.plot(t[0:delta_t.shape[1]],delta_t[0,:],
-                    color='#00429d', lw=2, ls="-")
-    tsam1, = ax13.plot(t[0:t_sample.shape[1]],t_sample[0,:],
-                    color='#9e4941', lw=2, ls="-.")
-
-    ax13.set_ylabel(r"$[s]$", rotation='vertical')
-    ax13.set_xlabel(r"$\textrm{Time}[s]$", labelpad=5)
-    ax13.legend([time_1,tsam1],
-            [r'$t_{compute}$',r'$t_{sample}$'],
-            loc="best",
-            frameon=True, fancybox=True, shadow=False, ncol=2,
-            borderpad=0.5, labelspacing=0.5, handlelength=3, handletextpad=0.1,
-            borderaxespad=0.3, columnspacing=2)
-    ax13.grid(color='#949494', linestyle='-.', linewidth=0.5)
-
-    fig3.savefig("time.eps")
-    fig3.savefig("time.png")
-    fig3
-    plt.show()
     print(f'Mean iteration time with MLP Model: {1000*np.mean(delta_t):.1f}ms -- {1/np.mean(delta_t):.0f}Hz)')
 
 if __name__ == '__main__':
