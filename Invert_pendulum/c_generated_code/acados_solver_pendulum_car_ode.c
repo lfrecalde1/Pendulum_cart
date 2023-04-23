@@ -351,7 +351,7 @@ void pendulum_car_ode_acados_create_5_set_nlp_in(pendulum_car_ode_solver_capsule
     if (new_time_steps) {
         pendulum_car_ode_acados_update_time_steps(capsule, N, new_time_steps);
     } else {// all time_steps are identical
-        double time_step = 0.047619047619047616;
+        double time_step = 0.04950495049504951;
         for (int i = 0; i < N; i++)
         {
             ocp_nlp_in_set(nlp_config, nlp_dims, nlp_in, i, "Ts", &time_step);
@@ -387,15 +387,15 @@ void pendulum_car_ode_acados_create_5_set_nlp_in(pendulum_car_ode_solver_capsule
    double* W_0 = calloc(NY0*NY0, sizeof(double));
     // change only the non-zero elements:
     W_0[0+(NY0) * 0] = 1;
-    W_0[1+(NY0) * 1] = 1;
-    W_0[4+(NY0) * 4] = 0.1;
+    W_0[1+(NY0) * 1] = 2;
+    W_0[4+(NY0) * 4] = 0.3;
     ocp_nlp_cost_model_set(nlp_config, nlp_dims, nlp_in, 0, "W", W_0);
     free(W_0);
     double* W = calloc(NY*NY, sizeof(double));
     // change only the non-zero elements:
     W[0+(NY) * 0] = 1;
-    W[1+(NY) * 1] = 1;
-    W[4+(NY) * 4] = 0.1;
+    W[1+(NY) * 1] = 2;
+    W[4+(NY) * 4] = 0.3;
 
     for (int i = 1; i < N; i++)
     {
@@ -405,7 +405,7 @@ void pendulum_car_ode_acados_create_5_set_nlp_in(pendulum_car_ode_solver_capsule
     double* W_e = calloc(NYN*NYN, sizeof(double));
     // change only the non-zero elements:
     W_e[0+(NYN) * 0] = 1;
-    W_e[1+(NYN) * 1] = 1;
+    W_e[1+(NYN) * 1] = 2;
     ocp_nlp_cost_model_set(nlp_config, nlp_dims, nlp_in, N, "W", W_e);
     free(W_e);
     double* Vx_0 = calloc(NY0*NX, sizeof(double));

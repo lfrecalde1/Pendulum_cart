@@ -32,8 +32,8 @@ def create_ocp_solver_description(x0, N_horizon, t_horizon, F_max, F_min) -> Aca
     ocp.dims.N = N_horizon
 
     # set cost
-    Q_mat = 1 * np.diag([1, 1, 0.0, 0.0])  # [x,th,dx,dth]
-    R_mat = 1 * np.diag([0.1])
+    Q_mat = 1 * np.diag([1, 2, 0.0, 0.0])  # [x,th,dx,dth]
+    R_mat = 1 * np.diag([0.3])
 
     ocp.cost.cost_type = "LINEAR_LS"
     ocp.cost.cost_type_e = "LINEAR_LS"
@@ -162,9 +162,101 @@ def main():
 
         # System Evolution
         x[:, k+1] = f_d(x[:, k], u_control[:,k], t_s, f_system)
-        x[0:2,k+1] = x[0:2,k+1] +  np.random.uniform(low=-0.1, high=0.1, size=(2,))
-        x[2:4,k+1] = x[2:4,k+1] +  np.random.uniform(low=-0.05, high=0.05, size=(2,))
+        x[:, k+1] = x[:, k+1] +  np.random.uniform(low=-0.02, high=0.02, size=(4,))
+
         delta_t[:, k] = toc
+
+    fig1, ax1, ax2 = fancy_plots_2()
+    ## Axis definition necesary to fancy plots
+    ax1.set_xlim((t[0], t[-1]))
+    ax2.set_xlim((t[0], t[-1]))
+    ax1.set_xticklabels([])
+
+    state_1, = ax1.plot(t[0:x.shape[1]],x[0,:],
+                    color='#00429d', lw=2, ls="-")
+    desired_1, = ax1.plot(t[0:x.shape[1]],xref[0,0:x.shape[1]],
+                    color='#00429d', lw=2, ls="--")
+    state_3, = ax1.plot(t[0:x.shape[1]],x[2,:],
+                    color='#9e4941', lw=2, ls="-.")
+
+    state_2, = ax2.plot(t[0:x.shape[1]],x[1,:],
+                    color='#ac7518', lw=2, ls="-")
+    desired_2, = ax2.plot(t[0:x.shape[1]],xref[1,0:x.shape[1]],
+                    color='#ac7518', lw=2, ls="--")
+    state_4, = ax2.plot(t[0:x.shape[1]],x[3,:],
+                    color='#97a800', lw=2, ls="-.")
+
+    ax1.set_ylabel(r"$[m],[m/s]$", rotation='vertical')
+    ax1.legend([state_1,state_3,desired_1],
+            [r'$x_1$', r'$x_3$',r'$x_{1d}$'],
+            loc="best",
+            frameon=True, fancybox=True, shadow=False, ncol=2,
+            borderpad=0.5, labelspacing=0.5, handlelength=3, handletextpad=0.1,
+            borderaxespad=0.3, columnspacing=2)
+    ax1.grid(color='#949494', linestyle='-.', linewidth=0.5)
+
+    ## Figure 2
+    #fig2, ax2 = fancy_plots()
+    ax2.set_ylabel(r"$[rad],[rad/s]$", rotation='vertical')
+    ax2.set_xlabel(r"$\textrm{Time}[s]$", labelpad=5)
+    ax2.legend([state_2, state_4,desired_2],
+            [r'$x_2$', r'$x_4$', r'$x_{2d}$'],
+            loc="best",
+            frameon=True, fancybox=True, shadow=False, ncol=2,
+            borderpad=0.5, labelspacing=0.5, handlelength=3, handletextpad=0.1,
+            borderaxespad=0.3, columnspacing=2)
+    #ax2.axis([t[0], t[-1], x[1,:].min(), x[1,:].max()])
+    ax2.grid(color='#949494', linestyle='-.', linewidth=0.5)
+    fig1.savefig("system_states.eps")
+    fig1.savefig("system_states.png")
+    fig1
+    plt.show()
+
+    fig2, ax11 = fancy_plots_1()
+    ## Axis definition necesary to fancy plots
+    ax11.set_xlim((t[0], t[-1]))
+
+    control_1, = ax11.plot(t[0:u_control.shape[1]],u_control[0,:],
+                    color='#00429d', lw=2, ls="-")
+
+    ax11.set_ylabel(r"$[N]$", rotation='vertical')
+    ax11.set_xlabel(r"$\textrm{Time}[s]$", labelpad=5)
+    ax11.legend([control_1],
+            [r'$u$'],
+            loc="best",
+            frameon=True, fancybox=True, shadow=False, ncol=2,
+            borderpad=0.5, labelspacing=0.5, handlelength=3, handletextpad=0.1,
+            borderaxespad=0.3, columnspacing=2)
+    ax11.grid(color='#949494', linestyle='-.', linewidth=0.5)
+
+    fig2.savefig("control_actions.eps")
+    fig2.savefig("control_actions.png")
+    fig2
+    plt.show()
+
+    fig3, ax13 = fancy_plots_1()
+    ## Axis definition necesary to fancy plots
+    ax13.set_xlim((t[0], t[-1]))
+
+    time_1, = ax13.plot(t[0:delta_t.shape[1]],delta_t[0,:],
+                    color='#00429d', lw=2, ls="-")
+    tsam1, = ax13.plot(t[0:t_sample.shape[1]],t_sample[0,:],
+                    color='#9e4941', lw=2, ls="-.")
+
+    ax13.set_ylabel(r"$[s]$", rotation='vertical')
+    ax13.set_xlabel(r"$\textrm{Time}[s]$", labelpad=5)
+    ax13.legend([time_1,tsam1],
+            [r'$t_{compute}$',r'$t_{sample}$'],
+            loc="best",
+            frameon=True, fancybox=True, shadow=False, ncol=2,
+            borderpad=0.5, labelspacing=0.5, handlelength=3, handletextpad=0.1,
+            borderaxespad=0.3, columnspacing=2)
+    ax13.grid(color='#949494', linestyle='-.', linewidth=0.5)
+
+    fig3.savefig("time.eps")
+    fig3.savefig("time.png")
+    fig3
+    plt.show()
 
     # Systems Results
     print(f'Mean iteration time with MLP Model: {1000*np.mean(delta_t):.1f}ms -- {1/np.mean(delta_t):.0f}Hz)')

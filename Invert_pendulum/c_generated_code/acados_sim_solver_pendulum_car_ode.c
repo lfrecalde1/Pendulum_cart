@@ -77,7 +77,7 @@ int pendulum_car_ode_acados_sim_create(sim_solver_capsule * capsule)
     bool tmp_bool;
 
     
-    double Tsim = 0.047619047619047616;
+    double Tsim = 0.04950495049504951;
 
     
     // explicit ode

@@ -63,7 +63,7 @@
 #define PENDULUM_CAR_ODE_NY0    5
 #define PENDULUM_CAR_ODE_NY     5
 #define PENDULUM_CAR_ODE_NYN    4
-#define PENDULUM_CAR_ODE_N      21
+#define PENDULUM_CAR_ODE_N      101
 #define PENDULUM_CAR_ODE_NH     0
 #define PENDULUM_CAR_ODE_NPHI   0
 #define PENDULUM_CAR_ODE_NHN    0
