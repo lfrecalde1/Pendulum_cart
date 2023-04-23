@@ -79,11 +79,11 @@ def create_ocp_solver_description(x0, N_horizon, t_horizon, F_max, F_min) -> Aca
 def main():
     # Initial Values System
     # Simulation Time
-    t_final = 20
+    t_final = 150
     # Sample time
     t_s = 0.05
     # Prediction Time
-    t_prediction= 1;
+    t_prediction= 5;
 
     # Nodes inside MPC
     N = np.arange(0, t_prediction + t_s, t_s)
@@ -162,7 +162,8 @@ def main():
 
         # System Evolution
         x[:, k+1] = f_d(x[:, k], u_control[:,k], t_s, f_system)
-        x[:,k+1] = x[:,k+1] +  np.random.uniform(low=-0.05, high=0.05, size=(4,))
+        x[0:2,k+1] = x[0:2,k+1] +  np.random.uniform(low=-0.1, high=0.1, size=(2,))
+        x[2:4,k+1] = x[2:4,k+1] +  np.random.uniform(low=-0.05, high=0.05, size=(2,))
         delta_t[:, k] = toc
 
     # Systems Results

@@ -1,7 +1,7 @@
 {
     "acados_include_path": "/home/fer/acados/include",
     "acados_lib_path": "/home/fer/acados/lib",
-    "code_export_directory": "/home/fer/acados/examples/acados_python/Invert_pendulum/c_generated_code",
+    "code_export_directory": "/home/fer/Doctorado_Research/Servo_visual_NMPC/Acados_Time/Invert_pendulum/c_generated_code",
     "constraints": {
         "C": [],
         "C_e": [],
