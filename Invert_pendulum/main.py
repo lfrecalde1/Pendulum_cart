@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from casadi import Function
 from casadi import MX
 from fancy_plots import fancy_plots_2, fancy_plots_1
-from c_generated_code.acados_ocp_solver_pyx import AcadosOcpSolverCython
+#from c_generated_code.acados_ocp_solver_pyx import AcadosOcpSolverCython
 
 
 def f_d(x, u, ts, f_system):
@@ -69,7 +69,7 @@ def create_ocp_solver_description(x0, N_horizon, t_horizon, F_max, F_min) -> Aca
     ocp.solver_options.hessian_approx = "GAUSS_NEWTON"  # 'GAUSS_NEWTON', 'EXACT'
     ocp.solver_options.integrator_type = "ERK"
     ocp.solver_options.nlp_solver_type = "SQP_RTI"  # SQP_RTI, SQP
-    ocp.solver_options.nlp_solver_max_iter = 400
+    #ocp.solver_options.nlp_solver_max_iter = 400
     # ocp.solver_options.levenberg_marquardt = 1e-2
 
     # set prediction horizon
@@ -122,12 +122,13 @@ def main():
 
     # Optimization Problem
     ocp = create_ocp_solver_description(x[:,0], N_prediction, t_prediction, f_max, f_min)
+    acados_ocp_solver = AcadosOcpSolver(ocp, json_file="acados_ocp_" + ocp.model.name + ".json", build= False, generate= False)
 
-    solver_json = 'acados_fer_' + model.name + '.json'
-    AcadosOcpSolver.generate(ocp, json_file=solver_json)
-    AcadosOcpSolver.build(ocp.code_export_directory, with_cython=True)
-    acados_ocp_solver = AcadosOcpSolver.create_cython_solver(solver_json)
-    acados_ocp_solver = AcadosOcpSolverCython(ocp.model.name, ocp.solver_options.nlp_solver_type, ocp.dims.N)
+    #solver_json = 'acados_ocp_' + model.name + '.json'
+    #AcadosOcpSolver.generate(ocp, json_file=solver_json)
+    #AcadosOcpSolver.build(ocp.code_export_directory, with_cython=True)
+    #acados_ocp_solver = AcadosOcpSolver.create_cython_solver(solver_json)
+    #acados_ocp_solver = AcadosOcpSolverCython(ocp.model.name, ocp.solver_options.nlp_solver_type, ocp.dims.N)
 
     # Dimentions System
     nx = ocp.model.x.size()[0]
