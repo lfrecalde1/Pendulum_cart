@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from casadi import Function
 from casadi import MX
 from fancy_plots import fancy_plots_2, fancy_plots_1
+from c_generated_code.acados_ocp_solver_pyx import AcadosOcpSolverCython
 
 
 def f_d(x, u, ts, f_system):
@@ -118,14 +119,15 @@ def main():
     # Create Model of the system
     model, f_system = export_pendulum_model()
 
+
     # Optimization Problem
     ocp = create_ocp_solver_description(x[:,0], N_prediction, t_prediction, f_max, f_min)
-    acados_ocp_solver = AcadosOcpSolver(
-        ocp, json_file="acados_ocp_" + ocp.model.name + ".json"
-    )
-    acados_integrator = AcadosSimSolver(
-        ocp, json_file="acados_ocp_" + ocp.model.name + ".json"
-    )
+
+    solver_json = 'acados_fer_' + model.name + '.json'
+    AcadosOcpSolver.generate(ocp, json_file=solver_json)
+    AcadosOcpSolver.build(ocp.code_export_directory, with_cython=True)
+    acados_ocp_solver = AcadosOcpSolver.create_cython_solver(solver_json)
+    acados_ocp_solver = AcadosOcpSolverCython(ocp.model.name, ocp.solver_options.nlp_solver_type, ocp.dims.N)
 
     # Dimentions System
     nx = ocp.model.x.size()[0]
