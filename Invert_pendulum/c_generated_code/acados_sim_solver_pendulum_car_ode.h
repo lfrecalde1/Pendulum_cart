@@ -40,7 +40,7 @@
 #define PENDULUM_CAR_ODE_NX     4
 #define PENDULUM_CAR_ODE_NZ     0
 #define PENDULUM_CAR_ODE_NU     1
-#define PENDULUM_CAR_ODE_NP     0
+#define PENDULUM_CAR_ODE_NP     4
 
 #ifdef __cplusplus
 extern "C" {

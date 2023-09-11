@@ -169,6 +169,13 @@ int pendulum_car_ode_acados_sim_create(sim_solver_capsule * capsule)
     capsule->acados_sim_solver = pendulum_car_ode_sim_solver;
 
 
+    /* initialize parameter values */
+    double* p = calloc(np, sizeof(double));
+    
+
+    pendulum_car_ode_acados_sim_update_params(capsule, p, np);
+    free(p);
+
 
     /* initialize input */
     // x

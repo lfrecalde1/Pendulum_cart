@@ -108,8 +108,8 @@ int main()
 
     double lbx0[NBX0];
     double ubx0[NBX0];
-    lbx0[0] = 5;
-    ubx0[0] = 5;
+    lbx0[0] = 0;
+    ubx0[0] = 0;
     lbx0[1] = 0.17453292519943295;
     ubx0[1] = 0.17453292519943295;
     lbx0[2] = 0;
@@ -131,6 +131,18 @@ int main()
     // initial value for control input
     double u0[NU];
     u0[0] = 0.0;
+    // set parameters
+    double p[NP];
+    p[0] = 0;
+    p[1] = 0;
+    p[2] = 0;
+    p[3] = 0;
+
+    for (int ii = 0; ii <= N; ii++)
+    {
+        pendulum_car_ode_acados_update_params(acados_ocp_capsule, ii, p, NP);
+    }
+  
 
     // prepare evaluation
     int NTIMINGS = 1;

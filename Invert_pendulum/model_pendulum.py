@@ -43,6 +43,13 @@ def export_pendulum_model() -> AcadosModel:
 
     f_impl = xdot - f_expl
 
+    x_ref = MX.sym('x_ref')
+    theta_ref = MX.sym('theta_ref')
+    v_ref = MX.sym('v_ref')
+    thetap_ref = MX.sym('thetap_ref')
+
+    p = vertcat(x_ref, theta_ref, v_ref, thetap_ref)
+
     model = AcadosModel()
 
     model.f_impl_expr = f_impl
@@ -51,6 +58,7 @@ def export_pendulum_model() -> AcadosModel:
     model.xdot = xdot
     model.u = u
     model.name = model_name
+    model.p = p
 
     f_system = Function('system',[x, u], [f_expl])
     return model, f_system

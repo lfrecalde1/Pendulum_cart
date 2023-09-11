@@ -72,7 +72,7 @@ int main()
     x_current[3] = 0.0;
 
   
-    x_current[0] = 5;
+    x_current[0] = 0;
     x_current[1] = 0.17453292519943295;
     x_current[2] = 0;
     x_current[3] = 0;
@@ -83,6 +83,15 @@ int main()
     // initial value for control input
     double u0[NU];
     u0[0] = 0.0;
+    // set parameters
+    double p[NP];
+    p[0] = 0;
+    p[1] = 0;
+    p[2] = 0;
+    p[3] = 0;
+
+    pendulum_car_ode_acados_sim_update_params(capsule, p, NP);
+  
 
     int n_sim_steps = 3;
     // solve ocp in loop

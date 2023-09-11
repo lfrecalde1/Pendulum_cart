@@ -25,6 +25,7 @@ def create_ocp_solver_description(x0, N_horizon, t_horizon, F_max, F_min) -> Aca
 
     model, f_system = export_pendulum_model()
     ocp.model = model
+    ocp.p = model.p
     nx = model.x.size()[0]
     nu = model.u.size()[0]
     ny = nx + nu
@@ -35,27 +36,15 @@ def create_ocp_solver_description(x0, N_horizon, t_horizon, F_max, F_min) -> Aca
     # set cost
     Q_mat = 1 * np.diag([1, 2, 0.0, 0.0])  # [x,th,dx,dth]
     R_mat = 1 * np.diag([0.3])
+    ocp.parameter_values = np.array([0.0, 0.0, 0.0, 0.0])
 
-    ocp.cost.cost_type = "LINEAR_LS"
-    ocp.cost.cost_type_e = "LINEAR_LS"
+    error = ocp.p - model.x
 
-    ny = nx + nu
-    ny_e = nx
+    ocp.cost.cost_type = "EXTERNAL"
+    #ocp.cost.cost_type_e = "EXTERNAL"
 
-    ocp.cost.W_e = Q_mat
-    ocp.cost.W = scipy.linalg.block_diag(Q_mat, R_mat)
-
-    ocp.cost.Vx = np.zeros((ny, nx))
-    ocp.cost.Vx[:nx, :nx] = np.eye(nx)
-
-    Vu = np.zeros((ny, nu))
-    Vu[nx : nx + nu, 0:nu] = np.eye(nu)
-    ocp.cost.Vu = Vu
-
-    ocp.cost.Vx_e = np.eye(nx)
-
-    ocp.cost.yref = np.zeros((ny,))
-    ocp.cost.yref_e = np.zeros((ny_e,))
+    ocp.model.cost_expr_ext_cost = error.T @ Q_mat @error + model.u.T @ R_mat @ model.u
+    #ocp.model.cost_expr_ext_cost_e = model.x.T @ Q_mat @ model.x
 
     # set constraints
     ocp.constraints.lbu = np.array([F_min])
@@ -80,7 +69,7 @@ def create_ocp_solver_description(x0, N_horizon, t_horizon, F_max, F_min) -> Aca
 def main():
     # Initial Values System
     # Simulation Time
-    t_final = 150
+    t_final = 20
     # Sample time
     t_s = 0.05
     # Prediction Time
@@ -99,7 +88,7 @@ def main():
 
     # Vector Initial conditions
     x = np.zeros((4, t.shape[0]+1-N_prediction), dtype = np.double)
-    x[0,0] = 5.0
+    x[0,0] = 0.0
     x[1,0] = 10*(np.pi/180)
     x[2,0] = 0.0
     x[3,0] = 0.0
@@ -122,7 +111,7 @@ def main():
 
     # Optimization Problem
     ocp = create_ocp_solver_description(x[:,0], N_prediction, t_prediction, f_max, f_min)
-    acados_ocp_solver = AcadosOcpSolver(ocp, json_file="acados_ocp_" + ocp.model.name + ".json", build= False, generate= False)
+    acados_ocp_solver = AcadosOcpSolver(ocp, json_file="acados_ocp_" + ocp.model.name + ".json", build= True, generate= True)
 
     #solver_json = 'acados_ocp_' + model.name + '.json'
     #AcadosOcpSolver.generate(ocp, json_file=solver_json)
@@ -146,11 +135,14 @@ def main():
         acados_ocp_solver.set(0, "ubx", x[:,k])
 
         # update yref
+        #for j in range(N_prediction):
+            #yref = xref[:,k+j]
+            #acados_ocp_solver.set(j, "yref", yref)
+        #yref_N = xref[:,k+N_prediction]
+        #acados_ocp_solver.set(N_prediction, "yref", yref_N[0:4])
         for j in range(N_prediction):
-            yref = xref[:,k+j]
-            acados_ocp_solver.set(j, "yref", yref)
-        yref_N = xref[:,k+N_prediction]
-        acados_ocp_solver.set(N_prediction, "yref", yref_N[0:4])
+            acados_ocp_solver.set(j, "p", np.array([xref[0,k+j], xref[1,k+j], xref[2,k+j], xref[3,k+j]]))
+
 
         # Get Computational Time
         tic = time.time()
